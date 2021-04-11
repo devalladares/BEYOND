@@ -55,46 +55,6 @@ function init() {
 
 	const roughnessMipmapper = new RoughnessMipmapper(renderer);
 	const textureLoader = new THREE.TextureLoader(loadingManager);
-	const grassRepeaterU = 16
-	const grassRepeaterV = 40
-	const grassColor = textureLoader.load('../textures/0_grass/Ground_Forest_003_baseColor.jpg',
-		function(texture) {
-			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-			texture.offset.set(0, 0);
-			texture.repeat.set(grassRepeaterU, grassRepeaterV);
-		});
-	const grassNormal = textureLoader.load('../textures/0_grass/Ground_Forest_003_normal.jpg',
-		function(texture) {
-			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-			texture.offset.set(0, 0);
-			texture.repeat.set(grassRepeaterU, grassRepeaterV);
-		});
-	const grassRoughness = textureLoader.load('../textures/0_grass/Ground_Forest_003_ROUGH.jpg',
-		function(texture) {
-			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-			texture.offset.set(0, 0);
-			texture.repeat.set(grassRepeaterU, grassRepeaterV);
-		});
-	const grassAO = textureLoader.load('../textures//0_grass/Ground_Forest_003_ambientOcclusion.jpg',
-		function(texture) {
-			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-			texture.offset.set(0, 0);
-			texture.repeat.set(grassRepeaterU, grassRepeaterV);
-		});
-	const grassDisp = textureLoader.load('../textures//0_grass/Ground_Forest_003_height.jpg',
-		function(texture) {
-			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-			texture.offset.set(0, 0);
-			texture.repeat.set(grassRepeaterU, grassRepeaterV);
-		});
-
-	let grass = new THREE.MeshStandardMaterial({
-		map: grassColor,
-		normalMap: grassNormal,
-		aoMap: grassAO,
-		// aoMapIntensity: 1,
-		roughnessMap: grassRoughness,
-	});
 
 	/**
 	 * Loading
