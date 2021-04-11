@@ -376,7 +376,7 @@ function init() {
 	 */
 
 	gltfLoader.load(
-		'textures/k_rocks/forest26.glb',
+		'./textures/k_rocks/forest26.glb',
 		(gltf) => {
 			gltf.scene.scale.set(2.5, 2.5, 2.5)
 			gltf.scene.position.set(0, -8.366, 5)
