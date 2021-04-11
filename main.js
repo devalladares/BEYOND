@@ -376,7 +376,7 @@ function init() {
 	 */
 
 	gltfLoader.load(
-		'../textures/k_rocks/forest26.glb',
+		'./BEYOND/textures/k_rocks/forest26.glb',
 		(gltf) => {
 			gltf.scene.scale.set(2.5, 2.5, 2.5)
 			gltf.scene.position.set(0, -8.366, 5)
@@ -395,7 +395,7 @@ function init() {
 
 	// // 1.1 FOREST ROCKS
 	gltfLoader.load(
-		'../textures/k_rocks/rocks/rocks_all3.glb',
+		'./textures/k_rocks/rocks/rocks_all3.glb',
 		(gltf) => {
 			let rockNumber = []
 			let rockSeparator = 30
