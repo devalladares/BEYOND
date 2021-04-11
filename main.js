@@ -212,9 +212,6 @@ function init() {
 	bodySphere.position.copy(controls.getObject().position)
 	camera.add(bodySphere);
 
-	createFloor(floorGroup, floorCount, scene, newFloor, floors, loadingManager, gui, guiObjects)
-
-
 	const waterGeometry = new THREE.PlaneGeometry(280, 500);
 
 	water = new Water(
@@ -920,9 +917,6 @@ import {
 import {
 	createBodySphere
 } from './src/components/bodySphere.js';
-import {
-	createFloor,
-} from './src/components/floor.js';
 import {
 	createLights
 } from './src/components/lights.js';
