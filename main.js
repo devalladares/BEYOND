@@ -416,37 +416,37 @@ function init() {
 	//  * 2 ZEN GARDEN
 	//  */
 	// //
-	gltfLoader.load(
-		'../textures/l_zen/zen2.glb',
-		(gltf) => {
-			gltf.scene.scale.set(2.5, 2.5, 2.5)
-			gltf.scene.position.set(0, -3.073, 5)
-			gltf.scene.rotation.y = Math.PI * 0.5
-
-			mixer = new THREE.AnimationMixer(gltf.scene);
-			gltf.animations.forEach((clip) => {
-				mixer.clipAction(clip).play();
-			});
-			render();
-
-			console.log(gltf)
-
-			scene.add(gltf.scene)
-
-			guiObjects.add(gltf.scene.position, 'x')
-				.min(-100)
-				.max(100)
-				.step(0.001)
-				.name('GLTFpositionX')
-
-			guiObjects.add(gltf.scene.position, 'y')
-				.min(-10)
-				.max(10)
-				.step(0.001)
-				.name('GLTFpositionY')
-
-			updateAllMaterials()
-		})
+	// gltfLoader.load(
+	// 	'../textures/l_zen/zen2.glb',
+	// 	(gltf) => {
+	// 		gltf.scene.scale.set(2.5, 2.5, 2.5)
+	// 		gltf.scene.position.set(0, -3.073, 5)
+	// 		gltf.scene.rotation.y = Math.PI * 0.5
+	//
+	// 		mixer = new THREE.AnimationMixer(gltf.scene);
+	// 		gltf.animations.forEach((clip) => {
+	// 			mixer.clipAction(clip).play();
+	// 		});
+	// 		render();
+	//
+	// 		console.log(gltf)
+	//
+	// 		scene.add(gltf.scene)
+	//
+	// 		guiObjects.add(gltf.scene.position, 'x')
+	// 			.min(-100)
+	// 			.max(100)
+	// 			.step(0.001)
+	// 			.name('GLTFpositionX')
+	//
+	// 		guiObjects.add(gltf.scene.position, 'y')
+	// 			.min(-10)
+	// 			.max(10)
+	// 			.step(0.001)
+	// 			.name('GLTFpositionY')
+	//
+	// 		updateAllMaterials()
+	// 	})
 
 
 
