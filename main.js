@@ -5,7 +5,8 @@ let presentation = false
 
 //   // WORKING
 // const speederBoi = 200
-const speederBoi = 500
+// const speederBoi = 500
+const speederBoi = 150
 
 const floors = []
 let newFloor
@@ -254,7 +255,7 @@ function init() {
 	sun = new THREE.Vector3();
 	sky = new Sky();
 	sky.scale.setScalar(450000);
-	scene.add(sky);
+	// scene.add(sky);
 
 	sun = new THREE.Vector3();
 
@@ -265,7 +266,8 @@ function init() {
 		mieCoefficient: 0.005,
 		mieDirectionalG: 0.7,
 		// inclination: 0.49, // elevation / inclination
-		inclination: 0.4787, // elevation / inclination
+		// inclination: 0.4787, // elevation / inclination
+		inclination: 0.3684, // elevation / inclination
 		azimuth: 0.25, // Facing front,
 		exposure: renderer.toneMappingExposure
 	};
@@ -286,7 +288,7 @@ function init() {
 	// /**œ¬
 	//  * WATER2
 	//  */
-	params.color = '#0a1b17'
+	params.color = '#0d1b11'
 	params.scale = 6
 	params.flowX = 0
 	params.flowY = 0.5
@@ -298,12 +300,12 @@ function init() {
 		color: params.color,
 		scale: params.scale,
 		flowDirection: new THREE.Vector2(params.flowX, params.flowY),
-		textureWidth: 128,
-		textureHeight: 128
+		textureWidth: 256,
+		textureHeight: 256
 	});
 
 	water2.rotation.x = Math.PI * -0.5;
-	water2.position.y = -13.95
+	water2.position.y = -17.01
 	water2.position.z = -596.48
 
 	scene.add(water2);
@@ -333,29 +335,34 @@ function init() {
 	 */
 
 	gltfLoader.load(
-		'./textures/k_rocks/forest26.glb',
+		// './textures/k_rocks/forest29.glb',
+		'./textures/k_rocks/forest29_ex.glb',
 		(gltf) => {
 			gltf.scene.scale.set(2.5, 2.5, 2.5)
 			gltf.scene.position.set(0, -8.366, 5)
 			gltf.scene.rotation.y = Math.PI * 0.5
 
-			// mixer = new THREE.AnimationMixer(gltf.scene);
-			// gltf.animations.forEach((clip) => {
-			// 	mixer.clipAction(clip).play();
-			// });
-			// render();
+			// console.log(gltf.scene)
+
+			mixer = new THREE.AnimationMixer(gltf.scene);
+			gltf.animations.forEach((clip) => {
+				mixer.clipAction(clip).play();
+			});
+			render();
 
 			scene.add(gltf.scene)
 
 			updateAllMaterials()
 		})
 
+
+
 	// // 1.1 FOREST ROCKS
 	gltfLoader.load(
-		'./textures/k_rocks/rocks/rocks_all3.glb',
+		'./textures/k_rocks/rocks/rocks_all4.glb',
 		(gltf) => {
 			let rockNumber = []
-			let rockSeparator = 30
+			let rockSeparator = 29.5
 			let rockseparation = null
 
 			for (let i = 10; i >= 0; i--) {
@@ -366,6 +373,12 @@ function init() {
 				rockNumber[i].position.set(random(-1, 1), -8, -70 - rockseparation)
 				rockNumber[i].scale.set(2.5, 2.5, 2.5)
 			}
+
+			let bigRock = gltf.scene.children[0]
+			bigRock.scale.set(6, 6, 6)
+			bigRock.position.set(random(-1, 1), -15.868, 86)
+			bigRock.rotation.set(33.988, 20.982, 0)
+			scene.add(bigRock)
 			updateAllMaterials()
 		})
 
@@ -375,15 +388,15 @@ function init() {
 	//  */
 	//
 	gltfLoader.load(
-		'./textures/l_zen/zen2.glb',
+		'./textures/l_zen/zen20.glb',
 		(gltf) => {
 			gltf.scene.scale.set(2.5, 2.5, 2.5)
-			gltf.scene.position.set(0, -3.073, 5)
+			gltf.scene.position.set(0, -8.738, 5)
 			gltf.scene.rotation.y = Math.PI * 0.5
 
-			mixer = new THREE.AnimationMixer(gltf.scene);
+			mixer2 = new THREE.AnimationMixer(gltf.scene);
 			gltf.animations.forEach((clip) => {
-				mixer.clipAction(clip).play();
+				mixer2.clipAction(clip).play();
 			});
 			render();
 
@@ -397,14 +410,63 @@ function init() {
 				.step(0.001)
 				.name('GLTFpositionX')
 
+			guiObjects.add(gltf.scene.position, 'z')
+				.min(-20)
+				.max(0)
+				.step(0.001)
+				.name('GLTFpositionZ')
+
 			guiObjects.add(gltf.scene.position, 'y')
 				.min(-10)
-				.max(10)
+				.max(1)
 				.step(0.001)
 				.name('GLTFpositionY')
 
 			updateAllMaterials()
 		})
+
+	/**
+	 * Temple
+	 */
+
+	// let geometry, material;
+	//
+	// geometry = new THREE.CircleGeometry(40, 64);
+	// groundMirror = new Reflector(geometry, {
+	// 	clipBias: 0.003,
+	// 	textureWidth: window.innerWidth * window.devicePixelRatio,
+	// 	textureHeight: window.innerHeight * window.devicePixelRatio,
+	// 	color: 0x777777
+	// });
+
+	// groundMirror.position.y = 0.5;
+	// scene.add(groundMirror);
+
+	gltfLoader.load(
+		// './textures/m_temple/temple_1.glb',
+		'./textures/m_temple/temple_9_ex.glb',
+		(gltf) => {
+			gltf.scene.scale.set(2.5, 2.5, 2.5)
+			gltf.scene.position.set(0, -8.366, 5)
+			gltf.scene.rotation.y = Math.PI * 0.5
+
+				// let	 model = gltf.scene;
+	//
+	// let newMaterial = new THREE.MeshDepthMaterial({
+	// 	// color: 0xff0000,
+	// 	side: THREE.DoubleSide,
+	// });
+	//
+	// model.traverse((o) => {
+	// 	if (o.isMesh) o.material = newMaterial;
+	// });
+
+			scene.add(gltf.scene)
+
+			// updateAllMaterials()
+		})
+
+
 
 
 
@@ -467,7 +529,7 @@ function init() {
 	directionalLight.position.set(34, 35, -5)
 	directionalLight.castShadow = true
 	// TONE DOWN IF PROBLEM
-	directionalLight.shadow.mapSize.set(4096, 4096)
+	// directionalLight.shadow.mapSize.set(4096, 4096)
 	//CHECK
 	directionalLight.shadow.camera.far = 15
 	directionalLight.shadow.normalBias = 0.05
@@ -499,7 +561,7 @@ function init() {
 	// guiEnv.open()
 	// guiLights.open()
 
-	gui.close()
+	// gui.close()
 
 
 
@@ -507,7 +569,7 @@ function init() {
 	 * ToneMapping
 	 */
 	renderer.toneMappingExposure = 3
-	renderer.toneMappingExposure = 0.6
+	// renderer.toneMappingExposure = 0.6
 
 	guiRend.add(renderer, 'toneMapping', {
 		No: THREE.NoToneMapping,
@@ -675,6 +737,9 @@ function render() {
 	// Model animation
 	if (mixer) {
 		mixer.update(deltaTime)
+	}
+	if (mixer2) {
+		mixer2.update(deltaTime)
 	}
 
 	if (controls.isLocked === true) {
@@ -857,6 +922,7 @@ let effectController
 
 //Mixer
 let mixer = null
+let mixer2 = null
 // let mixer
 
 let rocks = []
@@ -870,6 +936,9 @@ let water2
 
 //Fireflies
 let firefliesMaterial
+
+//Mirror
+let verticalMirror, groundMirror
 
 /////////////////////// INITIATE ///////////////////////
 
@@ -949,6 +1018,9 @@ import {
 import {
 	SMAAPass
 } from './examples/jsm/postprocessing/SMAAPass.js'
+import {
+	Reflector
+} from './examples/jsm/objects/Reflector.js';
 //HMM
 
 import {

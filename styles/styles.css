@@ -4,11 +4,6 @@ body {
   overflow: hidden
 }
 
-/* @font-face {
-  font-family: "Signifier";
-  src: url("sig.otf");
-} */
-
 #p5Div {
   position: absolute;
   top: 0;
@@ -160,8 +155,7 @@ a:hover {
     transform: rotate(360deg);
   }
 }
-
-
+/*
 .point .label
 {
     position: absolute;
@@ -181,7 +175,7 @@ a:hover {
     cursor: help;
     transform: scale(0, 0);
     transition: transform 0.3s;
-}
+} */
 /*
 .point .text
 {
