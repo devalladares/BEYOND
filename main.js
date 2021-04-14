@@ -1,7 +1,7 @@
 //	// PRESENTATION
 // const speederBoi = 300
 let presentation = false
-// presentation = true
+// let presentation = true
 
 //   // WORKING
 // const speederBoi = 200
@@ -33,7 +33,7 @@ function init() {
 	// guiLights.open()
 	// guiRend.open()
 
-	scene = createScene(gui, params);
+	scene = new THREE.Scene()
 	camera = createCamera(scene)
 	renderer = createRenderer(guiRend, params);
 	container.append(renderer.domElement);
@@ -48,6 +48,10 @@ function init() {
 		loadingScreen.classList.add('fade-out');
 		loadingScreen.addEventListener('transitionend', onTransitionEnd);
 	});
+	//
+	scene.background = new THREE.Color('black')
+	// scene.fog = new THREE.FogExp2('black', 0.004);
+	scene.fog = new THREE.FogExp2('black', 0.0388);
 
 	const gltfLoader = new GLTFLoader(loadingManager)
 	const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager)
@@ -71,9 +75,6 @@ function init() {
 
 	environmentMap.encoding = THREE.sRGBEncoding
 	scene.environment = environmentMap
-
-	//OVERRIDE material
-	// scene.overrideMaterial = new THREE.MeshBasicMaterial({color: 'green'});
 
 	//Particles
 
@@ -119,8 +120,7 @@ function init() {
 
 	scene.add(fireflies)
 
-
-	gui.add(firefliesMaterial.uniforms.uSize, 'value').min(0).max(2000).step(1).name('firefliesSize')
+	// gui.add(firefliesMaterial.uniforms.uSize, 'value').min(0).max(2000).step(1).name('firefliesSize')
 
 	for (let i = 0; i < firefliesCount; i++) {
 		positionArray[i * 3 + 0] = (Math.random() - 0.5) * 500
@@ -450,16 +450,16 @@ function init() {
 			gltf.scene.position.set(0, -8.366, 5)
 			gltf.scene.rotation.y = Math.PI * 0.5
 
-				// let	 model = gltf.scene;
-	//
-	// let newMaterial = new THREE.MeshDepthMaterial({
-	// 	// color: 0xff0000,
-	// 	side: THREE.DoubleSide,
-	// });
-	//
-	// model.traverse((o) => {
-	// 	if (o.isMesh) o.material = newMaterial;
-	// });
+			// let	 model = gltf.scene;
+			//
+			// let newMaterial = new THREE.MeshDepthMaterial({
+			// 	// color: 0xff0000,
+			// 	side: THREE.DoubleSide,
+			// });
+			//
+			// model.traverse((o) => {
+			// 	if (o.isMesh) o.material = newMaterial;
+			// });
 
 			scene.add(gltf.scene)
 
@@ -561,7 +561,7 @@ function init() {
 	// guiEnv.open()
 	// guiLights.open()
 
-	gui.close()
+	// gui.close()
 
 
 
@@ -639,6 +639,13 @@ function init() {
 	// gui.add(unrealBloomPass, 'threshold').min(0).max(1).step(0.01)
 
 	// console.log(effectComposer)
+
+
+	gsap.to(scene.fog, {
+		duration: 8,
+		delay: 1,
+		density: 0.004
+	})
 }
 
 ///////////////////////// FUNCTIONS /////////////////////////
@@ -685,6 +692,12 @@ const sizes = {
 function onTransitionEnd(event) {
 	event.target.remove();
 }
+//
+// if (scene.fog.density > 0.004) {
+// 	scene.fog.density -= 0.0001
+// }
+
+
 
 function animate() {
 	requestAnimationFrame(animate);
@@ -779,42 +792,27 @@ function render() {
 		floorLifter = floorApproach > -10 ? -10 : floorApproach < -23 ? -23 : floorApproach
 		element.position.y = floorLifter
 		element.rotation.y = floorLifter * 0.02
-		// element.rotation.y = floorLifter * 0.1
 	});
 
 	//WATER
 	water.material.uniforms['time'].value += 1 / 240;
 
-	//LIGHTTESTER
-
-	// directionalLight.position.z += 0.1
-	// effectController.azimuth += 0.001
-	// renderer.toneMappingExposure += 0.01
-	// updateSun()
-
-	//night 0.5559 inclination
-	//day  0.4236 inclination
-
 	// console.log(camera.position)
 
-	//camera.position.z start = 20
-	//camera.position.z start = -200
+	const mapNumber2 = (num, in_min, in_max, out_min, out_max) => {
+		return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	}
 
-	// if (camera.position.z < -20 || camera.position.z > -40) {
-	//
-	// 	const mapNumber2 = (num, in_min, in_max, out_min, out_max) => {
-	// 		return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-	// 	}
-	//
-	// 	let inclinationLifter = mapNumber2(camera.position.z, -20, -40, 0.5, 0.4236)
-	//
-	// 	effectController.inclination = inclinationLifter
-	// 	updateSun()
-	//
-	// 	// console.log(camera.position.z)
+	let skyMapper = mapNumber2(camera.position.z, -300, -500, 0, 1)
+
+	skyChanger = skyMapper > 1 ? 1 : skyMapper < 0 ? 0 : skyMapper
+
+	scene.background.r = scene.background.g = scene.background.b = scene.fog.color.b = scene.fog.color.r = scene.fog.color.g = skyChanger
+
+	//FOG
+	// if (scene.fog.density > 0.004) {
+	// 	scene.fog.density -= 0.0001
 	// }
-
-	// console.log(effectController.azimuth)
 
 	//Raycaster
 	// raycaster.setFromCamera(mouse, camera)
@@ -865,16 +863,7 @@ function render() {
 /////////////////////// VARIABLES ///////////////////////////
 
 const audioListener = new THREE.AudioListener();
-const music1 = new Audio(audioListener);
-//
-// let {
-// 	pointLight,
-// 	pointLight2,
-// 	sphereLight,
-// 	ambientLight,
-// 	sphereLightMesh,
-// 	sphereLightMesh2
-// } = createLights();
+const music1 = new THREE.Audio(audioListener);
 
 let bodySphere
 
@@ -939,6 +928,7 @@ let firefliesMaterial
 
 //Mirror
 let verticalMirror, groundMirror
+let skyChanger = 0
 
 /////////////////////// INITIATE ///////////////////////
 
@@ -959,7 +949,8 @@ import {
 } from './examples/jsm/libs/dat.gui.module.js';
 import {
 	Water2
-} from './examples/jsm/objects/Water2.js';
+}
+from './examples/jsm/objects/Water2.js';
 import {
 	Water
 } from './examples/jsm/objects/Water.js';
@@ -991,9 +982,6 @@ import {
 	createLights
 } from './src/components/lights.js';
 import {
-	createScene
-} from './src/components/scene.js';
-import {
 	createControls
 } from './src/system/controls.js';
 import {
@@ -1021,12 +1009,13 @@ import {
 import {
 	Reflector
 } from './examples/jsm/objects/Reflector.js';
-//HMM
+import {
+	gsap
+} from "./gsap/esm/all.js";
 
 import {
 	UnrealBloomPass
 } from './examples/jsm/postprocessing/UnrealBloomPass.js'
-// import VolumetricFire from './VolumetricFire.js';
 
 //Random
 
