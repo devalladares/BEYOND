@@ -561,7 +561,9 @@ function init() {
 	// guiEnv.open()
 	// guiLights.open()
 
-	// gui.close()
+	gui.close()
+	// gui.hide()
+
 
 
 
