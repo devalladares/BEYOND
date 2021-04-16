@@ -50,8 +50,12 @@ function init() {
 	});
 	//
 	scene.background = new THREE.Color('black')
-	// scene.fog = new THREE.FogExp2('black', 0.004);
-	scene.fog = new THREE.FogExp2('black', 0.0388);
+	scene.fog = new THREE.FogExp2('black', 0.004);
+	// scene.fog = new THREE.FogExp2('lightgrey', 0.004);
+
+	if (presentation) {
+		scene.fog = new THREE.FogExp2('black', 0.0388);
+	}
 
 	const gltfLoader = new GLTFLoader(loadingManager)
 	const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager)
@@ -76,6 +80,10 @@ function init() {
 	environmentMap.encoding = THREE.sRGBEncoding
 	scene.environment = environmentMap
 
+	//stars
+	starGroup = createStars(scene, starGroup)
+
+
 	//Particles
 
 	const firefliesGeometry = new THREE.BufferGeometry()
@@ -92,14 +100,12 @@ function init() {
 	}
 
 	firefliesGeometry.setAttribute('aScale', new THREE.BufferAttribute(scaleArray, 1))
-
 	firefliesGeometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3))
 
 	firefliesMaterial = new THREE.ShaderMaterial({
 		transparent: true,
 		blending: THREE.AdditiveBlending,
 		depthWrite: false,
-
 		uniforms: {
 			uTime: {
 				value: 0
@@ -119,8 +125,6 @@ function init() {
 	const fireflies = new THREE.Points(firefliesGeometry, firefliesMaterial)
 
 	scene.add(fireflies)
-
-	// gui.add(firefliesMaterial.uniforms.uSize, 'value').min(0).max(2000).step(1).name('firefliesSize')
 
 	for (let i = 0; i < firefliesCount; i++) {
 		positionArray[i * 3 + 0] = (Math.random() - 0.5) * 500
@@ -293,7 +297,7 @@ function init() {
 	params.flowX = 0
 	params.flowY = 0.5
 
-	const water2Geometry = new THREE.PlaneGeometry(200, 350);
+	const water2Geometry = new THREE.PlaneGeometry(325, 350);
 	// const water2Geometry = new THREE.SphereGeometry(16,30,30);
 
 	water2 = new Water2(water2Geometry, {
@@ -354,18 +358,18 @@ function init() {
 
 			updateAllMaterials()
 		})
-
-
-
+	//
+	//
+	//
 	// // 1.1 FOREST ROCKS
 	gltfLoader.load(
-		'./textures/k_rocks/rocks/rocks_all4.glb',
+		'./textures/k_rocks/rocks_6.glb',
 		(gltf) => {
 			let rockNumber = []
-			let rockSeparator = 29.5
+			let rockSeparator = 30.5
 			let rockseparation = null
 
-			for (let i = 10; i >= 0; i--) {
+			for (let i = 11; i >= 0; i--) {
 				rockNumber[i] = gltf.scene.children[i]
 				rockseparation = i * rockSeparator
 				rocks.push(rockNumber[i])
@@ -388,7 +392,7 @@ function init() {
 	//  */
 	//
 	gltfLoader.load(
-		'./textures/l_zen/zen20.glb',
+		'./textures/l_zen/zen27.glb',
 		(gltf) => {
 			gltf.scene.scale.set(2.5, 2.5, 2.5)
 			gltf.scene.position.set(0, -8.738, 5)
@@ -400,34 +404,38 @@ function init() {
 			});
 			render();
 
-			console.log(gltf)
-
 			scene.add(gltf.scene)
-
-			guiObjects.add(gltf.scene.position, 'x')
-				.min(-100)
-				.max(100)
-				.step(0.001)
-				.name('GLTFpositionX')
-
-			guiObjects.add(gltf.scene.position, 'z')
-				.min(-20)
-				.max(0)
-				.step(0.001)
-				.name('GLTFpositionZ')
-
-			guiObjects.add(gltf.scene.position, 'y')
-				.min(-10)
-				.max(1)
-				.step(0.001)
-				.name('GLTFpositionY')
 
 			updateAllMaterials()
 		})
 
 	/**
+	 * ZEN STAIRS
+	 */
+
+	gltfLoader.load(
+		'./textures/l_zen/stairs1.glb',
+		(gltf) => {
+
+			let stairNumber = []
+			let stairSeparator = null
+
+			for (let i = 19; i >= 0; i--) {
+				stairNumber[i] = gltf.scene.children[i]
+				stairSeparator = Math.sin(((i / 20)) * Math.PI * -2) * 40 + 20
+				stairs.push(stairNumber[i])
+				scene.add(stairNumber[i])
+				stairNumber[i].position.set(stairSeparator, -8, -420 - i * 18)
+				stairNumber[i].rotation.y = Math.PI * 0.5
+				stairNumber[i].scale.set(2.5, 2.5, 2.5)
+			}
+		})
+
+	/**
 	 * Temple
 	 */
+
+	//MIRROR
 
 	// let geometry, material;
 	//
@@ -442,29 +450,31 @@ function init() {
 	// groundMirror.position.y = 0.5;
 	// scene.add(groundMirror);
 
-	gltfLoader.load(
-		// './textures/m_temple/temple_1.glb',
-		'./textures/m_temple/temple_9_ex.glb',
-		(gltf) => {
-			gltf.scene.scale.set(2.5, 2.5, 2.5)
-			gltf.scene.position.set(0, -8.366, 5)
-			gltf.scene.rotation.y = Math.PI * 0.5
 
-			// let	 model = gltf.scene;
-			//
-			// let newMaterial = new THREE.MeshDepthMaterial({
-			// 	// color: 0xff0000,
-			// 	side: THREE.DoubleSide,
-			// });
-			//
-			// model.traverse((o) => {
-			// 	if (o.isMesh) o.material = newMaterial;
-			// });
-
-			scene.add(gltf.scene)
-
-			// updateAllMaterials()
-		})
+	//FROM HERE
+	// gltfLoader.load(
+	// 	// './textures/m_temple/temple_1.glb',
+	// 	'./textures/m_temple/temple_9_ex.glb',
+	// 	(gltf) => {
+	// 		gltf.scene.scale.set(2.5, 2.5, 2.5)
+	// 		gltf.scene.position.set(0, -8.366, 5)
+	// 		gltf.scene.rotation.y = Math.PI * 0.5
+	//
+	// 		// let	 model = gltf.scene;
+	// 		//
+	// 		// let newMaterial = new THREE.MeshDepthMaterial({
+	// 		// 	// color: 0xff0000,
+	// 		// 	side: THREE.DoubleSide,
+	// 		// });
+	// 		//
+	// 		// model.traverse((o) => {
+	// 		// 	if (o.isMesh) o.material = newMaterial;
+	// 		// });
+	//
+	// 		scene.add(gltf.scene)
+	//
+	// 		// updateAllMaterials()
+	// 	})
 
 
 
@@ -561,7 +571,7 @@ function init() {
 	// guiEnv.open()
 	// guiLights.open()
 
-	gui.close()
+	// gui.close()
 	// gui.hide()
 
 
@@ -643,11 +653,13 @@ function init() {
 	// console.log(effectComposer)
 
 
+
 	gsap.to(scene.fog, {
 		duration: 8,
 		delay: 1,
 		density: 0.004
 	})
+
 }
 
 ///////////////////////// FUNCTIONS /////////////////////////
@@ -694,12 +706,6 @@ const sizes = {
 function onTransitionEnd(event) {
 	event.target.remove();
 }
-//
-// if (scene.fog.density > 0.004) {
-// 	scene.fog.density -= 0.0001
-// }
-
-
 
 function animate() {
 	requestAnimationFrame(animate);
@@ -737,10 +743,9 @@ function render() {
 	var delta2 = clock.getDelta();
 
 
-	let t = clock.getElapsedTime();
+	// let t = clock.getElapsedTime();
 
 	bodySphere.position.set(0, -20, 0);
-
 
 	const elapsedTime = clock.getElapsedTime()
 	const deltaTime = elapsedTime - previousTime
@@ -796,25 +801,33 @@ function render() {
 		element.rotation.y = floorLifter * 0.02
 	});
 
+	// STAIRLIFTER
+	stairs.forEach((element, i) => {
+		distanceFloor = camera.position.distanceTo(element.position)
+		floorApproach = mapNumber(distanceFloor, 90, 20, -25, -12)
+		floorLifter = floorApproach > -12 ? -12 : floorApproach < -25 ? -25 : floorApproach
+		element.position.y = floorLifter
+		element.scale.z = 30 / floorLifter
+	});
+
 	//WATER
 	water.material.uniforms['time'].value += 1 / 240;
 
-	// console.log(camera.position)
+	//stars
+	for (let i = 0; i < starGroup.children.length; i++) {
+		const object = starGroup.children[i];
+		object.rotation.y = performanceNow * -0.0000015
+	}
+
+	// console.log(camera.position.z)
 
 	const mapNumber2 = (num, in_min, in_max, out_min, out_max) => {
 		return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 	}
 
-	let skyMapper = mapNumber2(camera.position.z, -300, -500, 0, 1)
-
-	skyChanger = skyMapper > 1 ? 1 : skyMapper < 0 ? 0 : skyMapper
-
+	let skyMapper = mapNumber2(camera.position.z, -350, -440, 0, 0.95)
+	skyChanger = skyMapper > 0.95 ? 0.95 : skyMapper < 0 ? 0 : skyMapper
 	scene.background.r = scene.background.g = scene.background.b = scene.fog.color.b = scene.fog.color.r = scene.fog.color.g = skyChanger
-
-	//FOG
-	// if (scene.fog.density > 0.004) {
-	// 	scene.fog.density -= 0.0001
-	// }
 
 	//Raycaster
 	// raycaster.setFromCamera(mouse, camera)
@@ -916,8 +929,13 @@ let mixer = null
 let mixer2 = null
 // let mixer
 
+//Rocks
 let rocks = []
 let rockRotator
+
+//Stairs
+let stairs = []
+let stairRotator
 
 //Post
 let effectComposer
@@ -931,6 +949,9 @@ let firefliesMaterial
 //Mirror
 let verticalMirror, groundMirror
 let skyChanger = 0
+
+let starGroup, stars
+
 
 /////////////////////// INITIATE ///////////////////////
 
@@ -983,6 +1004,9 @@ import {
 import {
 	createLights
 } from './src/components/lights.js';
+import {
+	createStars
+} from './src/components/stars.js';
 import {
 	createControls
 } from './src/system/controls.js';
