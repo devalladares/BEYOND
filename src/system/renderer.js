@@ -11,7 +11,7 @@ function createRenderer(guiEnv, params, effectComposer) {
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	renderer.physicallyCorrectLights = true
 	renderer.outputEncoding = THREE.sRGBEncoding
-	renderer.toneMapping = THREE.CineonToneMapping
+	renderer.toneMapping = THREE.ACESFilmicToneMapping
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap
 

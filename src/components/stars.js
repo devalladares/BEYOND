@@ -8,13 +8,13 @@ import {
 	BufferAttribute
 } from '../../build/three.module.js';
 
-function createStars(scene, starGroup) {
+function createStars(scene, starGroup, everything) {
 
 	const starQty = 24000 / 4;
 	const starGeometry = new BufferGeometry()
 
 	const materialOptions = {
-		size: 1.0,
+		size: 0.0,
 		fog: false,
 		color: 'white'
 	};
@@ -26,9 +26,7 @@ function createStars(scene, starGroup) {
 		positionArray[i * 3 + 0] = Math.random() * 4
 		positionArray[i * 3 + 1] = Math.random() * 4
 		positionArray[i * 3 + 2] = Math.random() * 4
-
 		scaleArray[i] = Math.random()
-
 	}
 
 	starGeometry.setAttribute('aScale', new BufferAttribute(scaleArray, 1))
@@ -46,7 +44,7 @@ function createStars(scene, starGroup) {
 
 	starGroup = new Object3D();
 	starGroup.add(stars)
-	scene.add(starGroup);
+	everything.add(starGroup);
 
 	return starGroup;
 }

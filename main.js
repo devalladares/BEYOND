@@ -1,24 +1,23 @@
-//	// PRESENTATION
-// const speederBoi = 300
+// PRESENTATION
 // let presentation = false
 let presentation = true
 
-//   // WORKING
-// const speederBoi = 200
+// WORKING
 // const speederBoi = 500
 const speederBoi = 150
 
-const floors = []
-let newFloor
-let floorCount = 10
 
-////////////////////// INITIAL /////////////////////
+////////////////////// INITIATE /////////////////////
 
 function init() {
+
+
 
 	/**
 	 * Setup
 	 */
+
+	// GUI
 	const gui = new GUI()
 	const guiEnv = gui.addFolder('Environment');
 	const guiLights = guiEnv.addFolder('Lights');
@@ -28,46 +27,48 @@ function init() {
 	const guiWater2 = gui.addFolder('Water2');
 	const guiSky = gui.addFolder('Sky');
 
-	// guiSky.open()
-	// guiEnv.open()
-	// guiLights.open()
-	// guiRend.open()
-
+	// SCENE
 	scene = new THREE.Scene()
 	camera = createCamera(scene)
 	renderer = createRenderer(guiRend, params);
 	container.append(renderer.domElement);
+	window.addEventListener('resize', onWindowResize, false);
 
+	// STATS
 	stats = new Stats();
 	container.appendChild(stats.dom);
 
-	window.addEventListener('resize', onWindowResize, false);
+	// FOG + BACKGROUND
+	scene.background = new THREE.Color('black')
+	// scene.fog = new THREE.FogExp2('black', 0.004);
+	// scene.fog = new THREE.FogExp2('lightgrey', 0.004);
+	scene.fog = new THREE.FogExp2('black', 0.1);
+	if (presentation === true) {
+		scene.fog = new THREE.FogExp2('black', 0.1);
+	}
 
+	// EVERYTHING - IMPORTANT FOR LIFTING
+
+	scene.add(everything);
+
+
+	gui.add(scene.fog, 'density').min(0.0001).max(0.004).step(0.0001)
+
+	/**
+	 * Loading
+	 */
 	loadingManager = new THREE.LoadingManager(() => {
 		const loadingScreen = document.getElementById('loading-screen');
 		loadingScreen.classList.add('fade-out');
 		loadingScreen.addEventListener('transitionend', onTransitionEnd);
 	});
-	//
-	scene.background = new THREE.Color('black')
-	scene.fog = new THREE.FogExp2('black', 0.004);
-	// scene.fog = new THREE.FogExp2('lightgrey', 0.004);
 
-	if (presentation) {
-		scene.fog = new THREE.FogExp2('black', 0.0388);
-	}
-
+	// LOADERS
 	const gltfLoader = new GLTFLoader(loadingManager)
 	const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager)
-
 	new RGBELoader().setDataType(THREE.UnsignedByteType)
-
 	const roughnessMipmapper = new RoughnessMipmapper(renderer);
 	const textureLoader = new THREE.TextureLoader(loadingManager);
-
-	/**
-	 * Loading
-	 */
 	const environmentMap = cubeTextureLoader.load([
 		'./textures/environmentMaps/0/px.jpg',
 		'./textures/environmentMaps/0/nx.jpg',
@@ -80,14 +81,22 @@ function init() {
 	environmentMap.encoding = THREE.sRGBEncoding
 	scene.environment = environmentMap
 
-	//stars
-	starGroup = createStars(scene, starGroup)
+	/**
+	 * STARS
+	 */
+	starGroup = createStars(scene, starGroup, everything)
+	// console.log(starGroup.children[0].material.color)
 
+	starGroup.children[0].material.size = 0
+	starGroup.children[0].material.color.r = 0
+	starGroup.children[0].material.color.g = 0
+	starGroup.children[0].material.color.b = 0
 
-	//Particles
-
+	/**
+	 * FIREFLIES
+	 */
 	const firefliesGeometry = new THREE.BufferGeometry()
-	const firefliesCount = 500
+	const firefliesCount = 1000
 	const positionArray = new Float32Array(firefliesCount * 3)
 	const scaleArray = new Float32Array(firefliesCount)
 
@@ -114,23 +123,25 @@ function init() {
 				value: Math.min(window.devicePixelRatio, 2)
 			},
 			uSize: {
-				value: 1000
+				value: 0
 			}
 		},
 		fragmentShader: fragmentShader(),
 		vertexShader: vertexShader(),
 	})
 
-	// Points
-	const fireflies = new THREE.Points(firefliesGeometry, firefliesMaterial)
-
-	scene.add(fireflies)
-
 	for (let i = 0; i < firefliesCount; i++) {
 		positionArray[i * 3 + 0] = (Math.random() - 0.5) * 500
 		positionArray[i * 3 + 1] = Math.random() * 80
 		positionArray[i * 3 + 2] = (Math.random() - 0.5) * 700 - 200
 	}
+
+	const fireflies = new THREE.Points(firefliesGeometry, firefliesMaterial)
+	everything.add(fireflies)
+
+	// console.log(firefliesMaterial.uniforms.uSize.value)
+
+	// firefliesMaterial.uniforms.uSize.value = 4000
 
 	/**
 	 * Updater
@@ -155,8 +166,9 @@ function init() {
 	guiRend.add(params, 'envMapIntensity').min(0).max(20).step(0.001).onChange(updateAllMaterials)
 
 	/**
-	 * Controls
+	 * CONTROLS
 	 */
+
 	controls = createControls(camera, document.body, presentation, music1, audioListener, scene, loadingManager);
 
 	scene.add(controls.getObject());
@@ -211,22 +223,54 @@ function init() {
 	document.addEventListener('keyup', onKeyUp, false);
 
 	/**
-	 * BodyObject & Floor
+	 * BODY SPHERE
 	 */
 	bodySphere = createBodySphere()
 	bodySphere.position.copy(controls.getObject().position)
 	camera.add(bodySphere);
 
+	/**
+	 * WATER 1
+	 */
 	const waterGeometry = new THREE.PlaneGeometry(280, 500);
+
+	const waterGeometry2 = new THREE.PlaneGeometry(5000, 4000);
+
+	// const waterMat = new THREE.MeshBasicMaterial()
+
+	water3 = new Water(
+		waterGeometry2, {
+			textureWidth: 512,
+			textureHeight: 512,
+			waterNormals: new THREE.TextureLoader().load('examples/jsm/textures/waternormals.jpg', function(texture) {
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			}),
+			alpha: 1.0,
+			sunDirection: new THREE.Vector3(),
+			sunColor: 0xffffff,
+			waterColor: 0x001e0f,
+			distortionScale: 3.7,
+			fog: scene.fog !== undefined
+		}
+	);
+
+	// const waterTest = new THREE.Mesh(waterGeometry2, waterMat)
+
+	everything.add(water3)
+
+	water3.position.set(0, 155, -4000)
+	water3.rotation.x = -Math.PI / 2;
+
+	gui.add(water3.position, 'y', 0, 1000, 1).name('Water1Y');
+	gui.add(water3.position, 'z', -4000, 0, 1).name('Water1z');
+	gui.add(water3.position, 'x', -2000, 2000, 1).name('Water1x');
 
 	water = new Water(
 		waterGeometry, {
 			textureWidth: 512,
 			textureHeight: 512,
 			waterNormals: new THREE.TextureLoader().load('examples/jsm/textures/waternormals.jpg', function(texture) {
-
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-
 			}),
 			alpha: 1.0,
 			sunDirection: new THREE.Vector3(),
@@ -240,9 +284,8 @@ function init() {
 	water.rotation.x = -Math.PI / 2;
 	water.position.y = -13.95
 	water.position.z = -171.39
-	scene.add(water);
+	everything.add(water)
 
-	// const pmremGenerator = new THREE.PMREMGenerator(renderer);
 	const waterUniforms = water.material.uniforms;
 
 	guiWater.add(water.position, 'y', -100, 0, 0.01).name('Water Height');
@@ -252,67 +295,32 @@ function init() {
 	guiWater.add(waterUniforms.alpha, 'value', 0.1, 1, .001).name('alpha');
 	guiWater.addColor(waterUniforms.waterColor, 'value').name('waterColor')
 
-	/**
-	 * SKY SUN
-	 */
-
-	sun = new THREE.Vector3();
-	sky = new Sky();
-	sky.scale.setScalar(450000);
-	// scene.add(sky);
-
-	sun = new THREE.Vector3();
-
-	/// GUI
-	effectController = {
-		turbidity: 10,
-		rayleigh: 3,
-		mieCoefficient: 0.005,
-		mieDirectionalG: 0.7,
-		// inclination: 0.49, // elevation / inclination
-		// inclination: 0.4787, // elevation / inclination
-		inclination: 0.3684, // elevation / inclination
-		azimuth: 0.25, // Facing front,
-		exposure: renderer.toneMappingExposure
-	};
-
-	guiSky.add(effectController, "turbidity", 0.0, 20.0, 0.1).onChange(updateSun);
-	guiSky.add(effectController, "rayleigh", 0.0, 4, 0.001).onChange(updateSun);
-	guiSky.add(effectController, "mieCoefficient", 0.0, 0.1, 0.001).onChange(updateSun);
-	guiSky.add(effectController, "mieDirectionalG", 0.0, 1, 0.001).onChange(updateSun);
-	guiSky.add(effectController, "inclination", 0, 1, 0.0001).onChange(updateSun);
-	guiSky.add(effectController, "azimuth", 0, 1, 0.0001).onChange(updateSun).listen();
-	// guiSky.add(effectController, "exposure", 0, 5, 0.0001).onChange(updateSun);
-
-	updateSun();
-
-
-
-
-	// /**œ¬
-	//  * WATER2
-	//  */
+	// /**
+	//  * WATER 2
+	//  **
 	params.color = '#0d1b11'
 	params.scale = 6
 	params.flowX = 0
 	params.flowY = 0.5
 
-	const water2Geometry = new THREE.PlaneGeometry(325, 350);
-	// const water2Geometry = new THREE.SphereGeometry(16,30,30);
+	// const water2Geometry = new THREE.PlaneGeometry(325, 350);
+	// const water2Geometry = new THREE.PlaneGeometry(325, 1500);
+	const water2Geometry = new THREE.PlaneGeometry(1500, 1500);
 
 	water2 = new Water2(water2Geometry, {
 		color: params.color,
 		scale: params.scale,
 		flowDirection: new THREE.Vector2(params.flowX, params.flowY),
-		textureWidth: 256,
-		textureHeight: 256
+		textureWidth: 512,
+		textureHeight: 512
 	});
 
 	water2.rotation.x = Math.PI * -0.5;
 	water2.position.y = -17.01
 	water2.position.z = -596.48
 
-	scene.add(water2);
+
+	everything.add(water2)
 
 	guiWater2.add(water2.position, 'x', -200, 200, 0.01).name('Water2 X');
 	guiWater2.add(water2.position, 'y', -100, 10, 0.01).name('Water2 Height');
@@ -333,35 +341,26 @@ function init() {
 		water2.material.uniforms['flowDirection'].value.normalize();
 	});
 
-
 	/**
 	 * 1 FOREST
 	 */
+	// 1 FOREST MAIN
 
 	gltfLoader.load(
-		// './textures/k_rocks/forest29.glb',
-		'./textures/k_rocks/forest29_ex.glb',
+		'./textures/k_rocks/forest30.glb',
 		(gltf) => {
 			gltf.scene.scale.set(2.5, 2.5, 2.5)
 			gltf.scene.position.set(0, -8.366, 5)
 			gltf.scene.rotation.y = Math.PI * 0.5
 
-			// console.log(gltf.scene)
-
-			mixer = new THREE.AnimationMixer(gltf.scene);
-			gltf.animations.forEach((clip) => {
-				mixer.clipAction(clip).play();
-			});
-			render();
-
-			scene.add(gltf.scene)
+			// scene.add(gltf.scene)
+			everything.add(gltf.scene)
 
 			updateAllMaterials()
 		})
-	//
-	//
-	//
-	// // 1.1 FOREST ROCKS
+
+	// // 1.1 FOREST WATER ROCKS
+
 	gltfLoader.load(
 		'./textures/k_rocks/rocks_6.glb',
 		(gltf) => {
@@ -373,7 +372,8 @@ function init() {
 				rockNumber[i] = gltf.scene.children[i]
 				rockseparation = i * rockSeparator
 				rocks.push(rockNumber[i])
-				scene.add(rockNumber[i])
+				everything.add(rockNumber[i])
+				// scene.add(rockNumber[i])
 				rockNumber[i].position.set(random(-1, 1), -8, -70 - rockseparation)
 				rockNumber[i].scale.set(2.5, 2.5, 2.5)
 			}
@@ -382,17 +382,17 @@ function init() {
 			bigRock.scale.set(6, 6, 6)
 			bigRock.position.set(random(-1, 1), -15.868, 86)
 			bigRock.rotation.set(33.988, 20.982, 0)
-			scene.add(bigRock)
+			// scene.add(bigRock)
+			everything.add(bigRock)
 			updateAllMaterials()
 		})
-
 
 	// /**
 	//  * 2 ZEN GARDEN
 	//  */
-	//
+
 	gltfLoader.load(
-		'./textures/l_zen/zen27.glb',
+		'./textures/l_zen/zen36.glb',
 		(gltf) => {
 			gltf.scene.scale.set(2.5, 2.5, 2.5)
 			gltf.scene.position.set(0, -8.738, 5)
@@ -404,13 +404,14 @@ function init() {
 			});
 			render();
 
-			scene.add(gltf.scene)
+			// scene.add(gltf.scene)
+			everything.add(gltf.scene)
 
 			updateAllMaterials()
 		})
 
 	/**
-	 * ZEN STAIRS
+	 * 2.1 ZEN WATER STAIRS
 	 */
 
 	gltfLoader.load(
@@ -424,7 +425,8 @@ function init() {
 				stairNumber[i] = gltf.scene.children[i]
 				stairSeparator = Math.sin(((i / 20)) * Math.PI * -2) * 40 + 20
 				stairs.push(stairNumber[i])
-				scene.add(stairNumber[i])
+				everything.add(stairNumber[i])
+				// scene.add(stairNumber[i])
 				stairNumber[i].position.set(stairSeparator, -8, -420 - i * 18)
 				stairNumber[i].rotation.y = Math.PI * 0.5
 				stairNumber[i].scale.set(2.5, 2.5, 2.5)
@@ -432,7 +434,7 @@ function init() {
 		})
 
 	/**
-	 * Temple
+	 * 3 TEMPLE
 	 */
 
 	//MIRROR
@@ -450,14 +452,11 @@ function init() {
 	// groundMirror.position.y = 0.5;
 	// scene.add(groundMirror);
 
-
-	//FROM HERE
 	// gltfLoader.load(
-	// 	// './textures/m_temple/temple_1.glb',
-	// 	'./textures/m_temple/temple_9_ex.glb',
+	// 	'./textures/m_temple/temple_10.glb',
 	// 	(gltf) => {
 	// 		gltf.scene.scale.set(2.5, 2.5, 2.5)
-	// 		gltf.scene.position.set(0, -8.366, 5)
+	// 		gltf.scene.position.set(33, -8.738, -30)
 	// 		gltf.scene.rotation.y = Math.PI * 0.5
 	//
 	// 		// let	 model = gltf.scene;
@@ -471,76 +470,58 @@ function init() {
 	// 		// 	if (o.isMesh) o.material = newMaterial;
 	// 		// });
 	//
-	// 		scene.add(gltf.scene)
+	// 		guiObjects.add(gltf.scene.position, 'x')
+	// 			.min(-100)
+	// 			.max(100)
+	// 			.step(0.001)
+	// 			.name('GLTFpositionX')
+	// 		guiObjects.add(gltf.scene.position, 'y')
+	// 			.min(-100)
+	// 			.max(100)
+	// 			.step(0.001)
+	// 			.name('GLTFpositiony')
+	// 		guiObjects.add(gltf.scene.position, 'z')
+	// 			.min(-100)
+	// 			.max(100)
+	// 			.step(0.001)
+	// 			.name('GLTFpositionz')
 	//
-	// 		// updateAllMaterials()
+	// 		guiObjects.open()
+	// 		//
+	// 		// 		guiObjects.add(gltf.scene.position, 'y')
+	// 		// 			.min(-10)
+	// 		// 			.max(10)
+	// 		// 			.step(0.001)
+	// 		// 			.name('GLTFpositionY')
+	//
+	// // scene.add(gltf.scene)
+	// 		everything.add(gltf.scene)
+	// 		updateAllMaterials()
 	// 	})
 
+	// 3.1 MOUNTAIN LIFTER
+	gltfLoader.load(
+		'./textures/m_temple/disk_1.glb',
+		(gltf) => {
+			gltf.scene.scale.set(2.5, 2.5, 2.5)
+			gltf.scene.rotation.y = Math.PI * 0.5
 
+			disk.add(gltf.scene)
+			scene.add(disk)
+			updateAllMaterials()
+		})
 
-
+	disk.position.set(31, -22, -810)
 
 	/**
-	 * Raycaster
-	 */
-	// const geometry = new THREE.SphereGeometry(4, 16, 16);
-	// const material = new THREE.MeshStandardMaterial({
-	// 	color: 0xffff00
-	// });
-	// object1 = new THREE.Mesh(geometry, material);
-	//
-	// object2 = new THREE.Mesh(
-	// 	new THREE.SphereGeometry(4, 16, 16),
-	// 	new THREE.MeshStandardMaterial({
-	// 		color: 0xffff00
-	// 	})
-	// )
-	//
-	// object3 = new THREE.Mesh(
-	// 	new THREE.SphereGeometry(4, 16, 16),
-	// 	new THREE.MeshStandardMaterial({
-	// 		color: 0xffff00
-	// 	})
-	// )
-	//ENABLE RAYCASTER
-	// scene.add(object1);
-	// scene.add(object2)
-	// scene.add(object3)
-	//
-	// object1.position.set(10, 0, 50)
-	// object2.position.set(0, 0, 50)
-	// object3.position.set(-10, 0, 50)
-
-	// gui.add(object1.position, 'x').min(-100).max(100).step(0.001)
-	// gui.add(object1.position, 'y').min(-100).max(100).step(0.001)
-	// gui.add(object1.position, 'z').min(-100).max(100).step(0.001)
-
-	// raycaster = new THREE.Raycaster()
-	// mouse = new THREE.Vector2()
-	// currentIntersect = null
-	//
-	// points = [{
-	// 	position: new THREE.Vector3(10, 0, 50),
-	// 	element: document.querySelector('.point-0')
-	// }, {
-	// 	position: new THREE.Vector3(0, 0, 50),
-	// 	element: document.querySelector('.point-1')
-	// }, {
-	// 	position: new
-	// 	THREE.Vector3(-10, 0, 50),
-	// 	element: document.querySelector('.point-2')
-	// }]
-
-
-	/**
-	 * Lights ORIGINAL
+	 * LIGHTS
 	 */
 	directionalLight = new THREE.DirectionalLight('white', 3)
 	directionalLight.position.set(34, 35, -5)
 	directionalLight.castShadow = true
-	// TONE DOWN IF PROBLEM
-	// directionalLight.shadow.mapSize.set(4096, 4096)
-	//CHECK
+
+	directionalLight.shadow.mapSize.set(1024, 1024) // TONE DOWN IF NEEDED
+
 	directionalLight.shadow.camera.far = 15
 	directionalLight.shadow.normalBias = 0.05
 	directionalLight.shadow.camera = new THREE.OrthographicCamera(-200, 200, 200, -200, 1, 10000)
@@ -556,9 +537,6 @@ function init() {
 
 	scene.add(targetObject);
 
-	// const ambientLight = new THREE.AmbientLight(0x404040); // soft white ambientLight
-	// scene.add(ambientLight);
-
 	guiLights.add(directionalLight, 'intensity').min(0).max(10).step(0.001).name('lightIntensity');
 	guiLights.add(directionalLight.position, 'x').min(-50).max(50).step(0.001).name('lightX');
 	guiLights.add(directionalLight.position, 'y').min(-50).max(50).step(0.001).name('lightY');
@@ -568,20 +546,10 @@ function init() {
 	guiLights.add(targetObject.position, 'y').min(-50).max(50).step(.1).name('targetY');
 	guiLights.add(targetObject.position, 'z').min(-50).max(50).step(.1).name('targetZ');
 
-	// guiEnv.open()
-	// guiLights.open()
-
-	// gui.close()
-	// gui.hide()
-
-
-
-
 	/**
-	 * ToneMapping
+	 * TONEMAPPING
 	 */
 	renderer.toneMappingExposure = 3
-	// renderer.toneMappingExposure = 0.6
 
 	guiRend.add(renderer, 'toneMapping', {
 		No: THREE.NoToneMapping,
@@ -595,72 +563,89 @@ function init() {
 	})
 	guiRend.add(renderer, 'toneMappingExposure').min(0).max(10)
 
-
-
 	/**
-	 * Post Processing
+	 * GSAP
 	 */
-	// let RenderTargetClass = null
-	//
-	// if (renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2) {
-	// 	RenderTargetClass = THREE.WebGLMultisampleRenderTarget
-	// 	console.log('Using WebGLMultisampleRenderTarget')
-	// } else {
-	// 	RenderTargetClass = THREE.WebGLRenderTarget
-	// 	console.log('Using WebGLRenderTarget')
-	// }
-	//
-	// const renderTarget = new THREE.WebGLMultisampleRenderTarget(
-	// 	800,
-	// 	600, {
-	// 		minFilter: THREE.LinearFilter,
-	// 		magFilter: THREE.LinearFilter,
-	// 		format: THREE.RGBAFormat,
-	// 		encoding: THREE.sRGBEncoding
-	// 	}
-	// )
 
-	// EffectComposer
-	// effectComposer = new EffectComposer(renderer, renderTarget)
-	// effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-	// effectComposer.setSize(sizes.width, sizes.height)
-	//
-	// // Passes
-	// const renderPass = new RenderPass(scene, camera)
-	// effectComposer.addPass(renderPass)
-
-	// const dotScreenPass = new DotScreenPass()
-	// dotScreenPass.enabled = true
-	// effectComposer.addPass(dotScreenPass)
-
-	// const glitchPass = new GlitchPass()
-	// glitchPass.enabled = true
-	// effectComposer.addPass(glitchPass)
-
-	// const unrealBloomPass = new UnrealBloomPass()
-	// unrealBloomPass.enabled = true
-	// effectComposer.addPass(unrealBloomPass)
-	// unrealBloomPass.radius = 0.3
-	// unrealBloomPass.strength = 1
-	// unrealBloomPass.threshold = 0.6
-	// unrealBloomPass.enabled = true
-
-	// gui.add(unrealBloomPass, 'enabled')
-	// gui.add(unrealBloomPass, 'strength').min(0).max(2).step(0.01)
-	// gui.add(unrealBloomPass, 'radius').min(0).max(2).step(0.01)
-	// gui.add(unrealBloomPass, 'threshold').min(0).max(1).step(0.01)
-
-	// console.log(effectComposer)
-
-
-
+	// Animate Fog
 	gsap.to(scene.fog, {
-		duration: 8,
-		delay: 1,
+		duration: 15,
+		delay: 10,
+		ease: "power4",
 		density: 0.004
 	})
 
+	// gsap.to(scene.fog, {
+	// 	duration: 1,
+	// 	delay: 0,
+	// 	ease: "power4",
+	// 	density: 0.004
+	// })
+
+	// Animate Fireflies
+	// firefliesMaterial.uniforms.uSize.value = 4000
+
+	gsap.to(firefliesMaterial.uniforms.uSize, {
+		duration: 5,
+		delay: 0,
+		ease: "power4.in",
+		value: 1000,
+	})
+
+	// Animate Stars
+
+	gsap.to(starGroup.children[0].material.color, {
+		duration: 15,
+		delay: 5,
+		ease: "power4.in",
+		r: 0.2,
+		g: 0.2,
+		b: 0.2,
+	})
+
+	gui.hide()
+
+	//TORUS
+
+
+	const radius = 50
+	const tube = 20
+	const radialSegments = 64
+	const tubularSegments = 150
+
+	const torusgeometry = new THREE.TorusGeometry(radius, tube, radialSegments, tubularSegments);
+	const torusmaterial = new THREE.MeshBasicMaterial({
+		color: 'white',
+		// fog: false
+	});
+	let mainCentre = new THREE.Mesh(torusgeometry, torusmaterial);
+
+	mainCentre.position.z = -3216
+	mainCentre.position.y = 724
+
+	mainCentre.scale.set(8, 8, 8)
+
+	everything.add(mainCentre);
+
+	// gui.add(mainCentre.position, 'x').min(-500).max(500).step(1).name('lightX');
+	gui.add(mainCentre.position, 'y').min(0).max(1000).step(1).name('TORUSY');
+	gui.add(mainCentre.position, 'z').min(-6000).max(0).step(1).name('TORUSZ');
+	gui.add(mainCentre.scale, 'x').min(1).max(100).step(1).name('scalex')
+	gui.add(mainCentre.scale, 'y').min(1).max(100).step(1).name('scaley')
+	gui.add(mainCentre.scale, 'z').min(1).max(100).step(1).name('scalez')
+
+	// function fish (){
+	// 	mainCentre.scale.x = mainCentre.scale.y = mainCentre.scale.z
+	//
+	//
+	// }
+
+
+	// gui.add(mainCentre.scale, 'y').min(1).max(100).step(1).name('scaley');
+	// gui.add(mainCentre.scale, 'z').min(1).max(100).step(1).name('scalez');
 }
+
+// change density to 0.0031
 
 ///////////////////////// FUNCTIONS /////////////////////////
 
@@ -670,7 +655,6 @@ function onWindowResize() {
 	renderer.setSize(window.innerWidth, window.innerHeight);
 
 	firefliesMaterial.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2)
-	//
 	// effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
 	// effectComposer.setSize(window.innerWidth, window.innerHeight);
 }
@@ -713,43 +697,21 @@ function animate() {
 	render()
 }
 
-function updateSun() {
-
-	const uniforms = sky.material.uniforms;
-	uniforms["turbidity"].value = effectController.turbidity;
-	uniforms["rayleigh"].value = effectController.rayleigh;
-	uniforms["mieCoefficient"].value = effectController.mieCoefficient;
-	uniforms["mieDirectionalG"].value = effectController.mieDirectionalG;
-
-	const theta = Math.PI * (effectController.inclination - 0.5);
-	const phi = 2 * Math.PI * (effectController.azimuth - 0.5);
-
-	sun.x = Math.cos(phi);
-	sun.y = Math.sin(phi) * Math.sin(theta);
-	sun.z = Math.sin(phi) * Math.cos(theta);
-
-	uniforms["sunPosition"].value.copy(sun);
-
-	renderer.toneMappingExposure = effectController.exposure;
-	renderer.render(scene, camera);
-
-}
-
-
 ///////////////////////// RENDER ////////////////////////////
+
+const liftPoint = -810
+
+const cameraZLifter = -500
 
 function render() {
 	const performanceNow = performance.now();
 	var delta2 = clock.getDelta();
-
-
-	// let t = clock.getElapsedTime();
-
-	bodySphere.position.set(0, -20, 0);
-
 	const elapsedTime = clock.getElapsedTime()
 	const deltaTime = elapsedTime - previousTime
 	previousTime = elapsedTime
+
+	// BodySphere Attach
+	bodySphere.position.set(0, -20, 0);
 
 	// Update materials
 	firefliesMaterial.uniforms.uTime.value = elapsedTime
@@ -762,8 +724,8 @@ function render() {
 		mixer2.update(deltaTime)
 	}
 
+	// PointerLockControls
 	if (controls.isLocked === true) {
-
 		const delta = (performanceNow - prevTime) / 1000;
 		velocity.x -= velocity.x * 5.0 * delta;
 		velocity.z -= velocity.z * 5.0 * delta;
@@ -776,158 +738,169 @@ function render() {
 		controls.moveForward(-velocity.z * delta);
 		controls.getObject().position.y += (velocity.y * delta);
 		//BOUNDARIES
-		if (controls.getObject().position.z > 350) {
+		if (controls.getObject().position.z > 80) {
 			velocity.z = 0;
-			controls.getObject().position.z = 350;
+			controls.getObject().position.z = 80;
 		}
-		if (controls.getObject().position.x > 300) {
+		if (controls.getObject().position.x > 150) {
 			velocity.x = 0;
-			controls.getObject().position.x = 300;
+			controls.getObject().position.x = 150;
 		}
-		if (controls.getObject().position.x < -300) {
+		if (controls.getObject().position.x < -150) {
 			velocity.x = 0;
-			controls.getObject().position.x = -300;
+			controls.getObject().position.x = -150;
 		}
 	}
-
 	prevTime = performanceNow;
+
+	// REMAPPING FUNCTION
+	const mapNumber = (num, in_min, in_max, out_min, out_max) => {
+		return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	}
 
 	// ROCKLIFTER
 	rocks.forEach((element, i) => {
 		distanceFloor = camera.position.distanceTo(element.position)
 		floorApproach = mapNumber(distanceFloor, 80, 40, -23, -10)
 		floorLifter = floorApproach > -10 ? -10 : floorApproach < -23 ? -23 : floorApproach
-		element.position.y = floorLifter
-		element.rotation.y = floorLifter * 0.02
+
+		if (camera.position.z > liftPoint) {
+
+			element.position.y = floorLifter
+			element.rotation.y = floorLifter * 0.02
+		}
 	});
+
+	// console.log(camera.position.x)
 
 	// STAIRLIFTER
 	stairs.forEach((element, i) => {
-		distanceFloor = camera.position.distanceTo(element.position)
-		floorApproach = mapNumber(distanceFloor, 90, 20, -25, -12)
-		floorLifter = floorApproach > -12 ? -12 : floorApproach < -25 ? -25 : floorApproach
-		element.position.y = floorLifter
-		element.scale.z = 30 / floorLifter
+		distanceFloor2 = camera.position.distanceTo(element.position)
+		floorApproach2 = mapNumber(distanceFloor2, 120, 40, -25, -16)
+		floorLifter2 = floorApproach2 > -16 ? -16 : floorApproach2 < -25 ? -25 : floorApproach2
+
+		if (camera.position.z > liftPoint) {
+			element.position.y = floorLifter2
+			element.scale.z = 30 / floorLifter2
+		}
 	});
 
-	//WATER
-	water.material.uniforms['time'].value += 1 / 240;
 
-	//stars
+
+	// EVERYTHINGLIFTER
+
+	if (camera.position.z < liftPoint && everything.position.y > cameraZLifter) {
+		everything.position.y -= 0.3
+		// everything.position.y -= 2
+	} else if (camera.position.z > liftPoint && everything.position.y < 0) {
+		everything.position.y += 0.3
+		// everything.position.y += 2
+		disk.position.z = liftPoint
+	}
+
+	if (camera.position.z < liftPoint && camera.position.z > -1365) {
+		disk.position.z = camera.position.z
+	}
+
+	// Water 2
+	water.material.uniforms['time'].value += 1 / 240;
+	water3.material.uniforms['time'].value += 1 / 240;
+
+	// Stars
 	for (let i = 0; i < starGroup.children.length; i++) {
 		const object = starGroup.children[i];
 		object.rotation.y = performanceNow * -0.0000015
 	}
 
-	// console.log(camera.position.z)
-
-	const mapNumber2 = (num, in_min, in_max, out_min, out_max) => {
-		return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-	}
-
-	let skyMapper = mapNumber2(camera.position.z, -350, -440, 0, 0.95)
-	skyChanger = skyMapper > 0.95 ? 0.95 : skyMapper < 0 ? 0 : skyMapper
+	// Change Sky Color
+	let skyMapper = mapNumber(camera.position.z, -350, -440, 0, .75)
+	skyChanger = skyMapper > .75 ? .75 : skyMapper < 0 ? 0 : skyMapper
 	scene.background.r = scene.background.g = scene.background.b = scene.fog.color.b = scene.fog.color.r = scene.fog.color.g = skyChanger
 
-	//Raycaster
-	// raycaster.setFromCamera(mouse, camera)
-	//
-	// const objectTest = [object1, object2, object3]
-	// const intersects = raycaster.intersectObjects(objectTest)
-	// // console.log(intersects.length)
-	//
-	// for (const object of objectTest) {
-	// 	object.material.color.set('red')
-	// }
-	//
-	// for (const intersect of intersects) {
-	// 	intersect.object.material.color.set('green')
-	// }
+	// Change Sky Color 2
+	// skyMapper = mapNumber(camera.position.z, -1900, -2200, .75, .9)
+	// skyChanger = skyMapper > .9 ? .9 : skyMapper < .75 ? .75 : skyMapper
+	// scene.background.r = scene.background.g = scene.background.b = scene.fog.color.b = scene.fog.color.r = scene.fog.color.g = skyChanger
 
-	//RAYCASTING TESTER
-	// if (intersects.length) {
-	// 	currentIntersect = intersects[0]
-	// } else {
-	// 	currentIntersect = null
-	// }
-	//
-	// for (point of points) {
-	// 	const screenPosition = point.position.clone()
-	// 	screenPosition.project(camera)
-	//
-	// 	const translateX = screenPosition.x * sizes.width * 0.5
-	// 	const translateY = -screenPosition.y * sizes.height * 0.5
-	// 	point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`
-	//
-	// 	if (intersects.length === 0) {
-	// 		//INVISIBLE
-	//
-	// 		point.element.classList.remove('visible')
-	// 	} else {
-	// 		//VISIBLE
-	// 		point.element.classList.add('visible')
-	//
-	// 	}
-	// }
+	if (camera.position.z < -800) {
 
-	//POSTPROCESSING
-	// effectComposer.render()
+		let fogMapper = mapNumber(camera.position.z, -1800, -2200, 0.004, 0.0012)
+	//
+	fogChanger = fogMapper > 0.004 ? 0.004 : fogMapper < 0.0012 ? 0.0012 : fogMapper
+
+	//
+	scene.fog.density = fogChanger
+
+	}
+	//
+	// console.log(scene.fog.density)
+
 	renderer.render(scene, camera);
 }
 
 /////////////////////// VARIABLES ///////////////////////////
 
+// MAIN
+let camera, scene, renderer, composer, controls
+let geometry, materialOptions, stats
+let container = document.getElementById('container');
+
+// Audio
 const audioListener = new THREE.AudioListener();
 const music1 = new THREE.Audio(audioListener);
 
+// BodySphere
 let bodySphere
 
+// LoadingManager
+let loadingManager
+
+// GUI
+let params = {}
+
+// Controls
 const objects = [];
 let moveForward = false;
 let moveBackward = false;
 let moveLeft = false;
 let moveRight = false;
 let canJump = false;
-let prevTime = performance.now();
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 const vertex = new THREE.Vector3();
 
-let params = {}
-
-let camera, scene, renderer, composer, controls
-let geometry, materialOptions, stats, container
+// Time
+let prevTime = performance.now();
 let clock = new THREE.Clock();
 let previousTime = 0
 
-let floorGroup
-container = document.getElementById('container');
-
+// Floor
 let distanceFloor
 let floorLifter
 let floorApproach
-let loadingManager
+let distanceFloor2
+let floorLifter2
+let floorApproach2
 
-
-
-
-//WATER
+// Water 1
 let water, sun, mesh, sky
 
+//Water_2
+let water2, water3
+
+// Raycaster
+let points, point
 let mouse, raycaster
 let currentIntersect = null
 let object1, object2, object3
 
-let points, point
-
-//lights
+//Lights
 let directionalLight
 let effectController
 
 //Mixer
 let mixer = null
 let mixer2 = null
-// let mixer
 
 //Rocks
 let rocks = []
@@ -937,11 +910,12 @@ let rockRotator
 let stairs = []
 let stairRotator
 
+//Lift everything
+let everything = new THREE.Group()
+let disk = new THREE.Object3D()
+
 //Post
 let effectComposer
-
-//Water_2_M_Normal
-let water2
 
 //Fireflies
 let firefliesMaterial
@@ -950,6 +924,9 @@ let firefliesMaterial
 let verticalMirror, groundMirror
 let skyChanger = 0
 
+let fogChanger = 0
+
+// Stars
 let starGroup, stars
 
 
@@ -958,7 +935,7 @@ let starGroup, stars
 init();
 animate();
 
-/////////////////////// Import ///////////////////////
+/////////////////////// IMPORT ///////////////////////
 
 // import * as THREE from './build/three.module.js'
 import * as THREE from './build/three.module.js'
@@ -981,9 +958,6 @@ import {
 	GLTFLoader
 } from './examples/jsm/loaders/GLTFLoader.js';
 import {
-	DRACOLoader
-} from './examples/jsm/loaders/DRACOLoader.js'
-import {
 	RGBELoader
 } from './examples/jsm/loaders/RGBELoader.js';
 import {
@@ -1002,36 +976,12 @@ import {
 	createBodySphere
 } from './src/components/bodySphere.js';
 import {
-	createLights
-} from './src/components/lights.js';
-import {
 	createStars
 } from './src/components/stars.js';
 import {
 	createControls
 } from './src/system/controls.js';
-import {
-	EffectComposer
-} from './examples/jsm/postprocessing/EffectComposer.js'
-import {
-	RenderPass
-} from './examples/jsm/postprocessing/RenderPass.js'
-//HMM
-import {
-	DotScreenPass
-} from './examples/jsm/postprocessing/DotScreenPass.js'
-import {
-	GlitchPass
-} from './examples/jsm/postprocessing/GlitchPass.js'
-import {
-	RGBShiftShader
-} from './examples/jsm/shaders/RGBShiftShader.js'
-import {
-	ShaderPass
-} from './examples/jsm/postprocessing/ShaderPass.js'
-import {
-	SMAAPass
-} from './examples/jsm/postprocessing/SMAAPass.js'
+
 import {
 	Reflector
 } from './examples/jsm/objects/Reflector.js';
@@ -1039,11 +989,34 @@ import {
 	gsap
 } from "./gsap/esm/all.js";
 
-import {
-	UnrealBloomPass
-} from './examples/jsm/postprocessing/UnrealBloomPass.js'
+// POSTPROCESSING
 
-//Random
+// import {
+// 	EffectComposer
+// } from './examples/jsm/postprocessing/EffectComposer.js'
+// import {
+// 	RenderPass
+// } from './examples/jsm/postprocessing/RenderPass.js'
+// import {
+// 	DotScreenPass
+// } from './examples/jsm/postprocessing/DotScreenPass.js'
+// import {
+// 	GlitchPass
+// } from './examples/jsm/postprocessing/GlitchPass.js'
+// import {
+// 	RGBShiftShader
+// } from './examples/jsm/shaders/RGBShiftShader.js'
+// import {
+// 	ShaderPass
+// } from './examples/jsm/postprocessing/ShaderPass.js'
+// import {
+// 	SMAAPass
+// } from './examples/jsm/postprocessing/SMAAPass.js'
+// import {
+// 	UnrealBloomPass
+// } from './examples/jsm/postprocessing/UnrealBloomPass.js'
+
+// p5 Random Functions
 
 function randomInt(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -1053,10 +1026,7 @@ function random(min, max) {
 	return Math.random() * (max - min + 1) + min;
 }
 
-//MAP
-const mapNumber = (num, in_min, in_max, out_min, out_max) => {
-	return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
+// Shaders
 
 function vertexShader() {
 	return `
@@ -1077,7 +1047,6 @@ function vertexShader() {
 	gl_Position = projectionPosition;
 	gl_PointSize = uSize * aScale * uPixelRatio;
   gl_PointSize *= (1.0 / - viewPosition.z);
-
 }
   `
 }

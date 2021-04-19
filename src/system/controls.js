@@ -18,8 +18,15 @@ function createControls(camera, canvas, presentation, music1, audioListener, sce
 
 	controls = new PointerLockControls(camera, canvas);
 	const instructions = document.getElementById('instructions');
+	const embarkButton = document.getElementById('embark')
 
-	instructions.addEventListener('click', function() {
+	// if (document.getElementById('button').clicked == true) {
+	// 	controls.lock()
+	// }
+
+	// console.log(document.getElementById('button'))
+
+	embarkButton.addEventListener('click', function() {
 		controls.lock();
 	}, false);
 
@@ -29,7 +36,7 @@ function createControls(camera, canvas, presentation, music1, audioListener, sce
 
 		if (presentation === true && loaded === false) {
 			camera.add(audioListener);
-			scene.add(music1);
+			scene.add(music1); //ADD
 
 			const loaderAudio = new AudioLoader();
 
@@ -37,7 +44,7 @@ function createControls(camera, canvas, presentation, music1, audioListener, sce
 				'audio/devmusic9.mp3',
 				function(audioBuffer) {
 					music1.setBuffer(audioBuffer);
-					music1.play()
+					music1.play() //ADD
 					music1.setLoop(true);
 					let loopingEnabled = music1.loop;
 					music1.loop = true
@@ -50,7 +57,7 @@ function createControls(camera, canvas, presentation, music1, audioListener, sce
 					console.log('An error happened');
 				});
 		} else if (presentation === true && loaded === true) {
-			music1.play()
+			music1.play()  //ADD
 			music1.loop = true
 		}
 	});
