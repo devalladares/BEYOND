@@ -393,7 +393,7 @@ function init() {
 	//  */
 
 	gltfLoader.load(
-		'./textures/l_zen/zen37.glb',
+		'./textures/l_zen/zen38.glb',
 		(gltf) => {
 			gltf.scene.scale.set(2.5, 2.5, 2.5)
 			gltf.scene.position.set(0, -8.738, 5)
