@@ -15,6 +15,7 @@ function createCamera(scene) {
 	// const cameraZ = -700 // Temple Out
 	// const cameraZ = -1000 // Temple In
 	// const cameraZ = -2350 // Temple In
+	// const cameraZ = -1900 // Temple In
 
 	const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1500);
 	const camPos = new PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 1500);

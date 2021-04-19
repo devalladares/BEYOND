@@ -234,7 +234,8 @@ function init() {
 	 */
 	const waterGeometry = new THREE.PlaneGeometry(280, 500);
 
-	const waterGeometry2 = new THREE.PlaneGeometry(5000, 4000);
+	// const waterGeometry2 = new THREE.PlaneGeometry(5000, 4000);
+	const waterGeometry2 = new THREE.PlaneGeometry(4000, 2000);
 
 	// const waterMat = new THREE.MeshBasicMaterial()
 
@@ -258,7 +259,7 @@ function init() {
 
 	everything.add(water3)
 
-	water3.position.set(0, 155, -4000)
+	water3.position.set(0, 155, -2708)
 	water3.rotation.x = -Math.PI / 2;
 
 	gui.add(water3.position, 'y', 0, 1000, 1).name('Water1Y');
@@ -392,7 +393,7 @@ function init() {
 	//  */
 
 	gltfLoader.load(
-		'./textures/l_zen/zen36.glb',
+		'./textures/l_zen/zen37.glb',
 		(gltf) => {
 			gltf.scene.scale.set(2.5, 2.5, 2.5)
 			gltf.scene.position.set(0, -8.738, 5)
@@ -440,17 +441,40 @@ function init() {
 	//MIRROR
 
 	// let geometry, material;
-	//
-	// geometry = new THREE.CircleGeometry(40, 64);
-	// groundMirror = new Reflector(geometry, {
-	// 	clipBias: 0.003,
-	// 	textureWidth: window.innerWidth * window.devicePixelRatio,
-	// 	textureHeight: window.innerHeight * window.devicePixelRatio,
-	// 	color: 0x777777
-	// });
 
-	// groundMirror.position.y = 0.5;
-	// scene.add(groundMirror);
+	let circle1
+
+	circle1 = new THREE.CircleGeometry(40, 64);
+	mirror1 = new Reflector(circle1, {
+		clipBias: 0.003,
+		textureWidth: window.innerWidth * window.devicePixelRatio,
+		textureHeight: window.innerHeight * window.devicePixelRatio,
+		color: 0x777777
+	});
+
+	mirror1.position.y = 0.5;
+	mirror1.position.z = 63;
+	everything.add(mirror1);
+	mirror1.rotation.y = Math.PI * 2
+	mirror1.rotation.x = Math.PI
+
+	gui.add(mirror1.rotation, 'x').min(0).max(Math.PI * 2).step(0.001).name('mirrorx');
+	gui.add(mirror1.rotation, 'y').min(0).max(Math.PI * 2).step(0.001).name('mirrory');
+
+	gui.add(mirror1.position, 'x').min(0).max(1000).step(1).name('posx');
+	gui.add(mirror1.position, 'y').min(0).max(1000).step(1).name('posy');
+	gui.add(mirror1.position, 'z').min(0).max(1000).step(1).name('posz');
+
+
+	// for (let i = 0; i < 6; i++) {
+	// 	const mesh = mirror1.clone();
+	// 	const t = i / 6 * 2 * Math.PI
+	// 	mesh.position.x = Math.cos(t) * 40;
+	// 	mesh.position.z = Math.sin(t) * 40;
+	// 	mirrorGroup.add(mesh)
+	// }
+
+	everything.add(mirrorGroup)
 
 	// gltfLoader.load(
 	// 	'./textures/m_temple/temple_10.glb',
@@ -634,15 +658,27 @@ function init() {
 	gui.add(mainCentre.scale, 'y').min(1).max(100).step(1).name('scaley')
 	gui.add(mainCentre.scale, 'z').min(1).max(100).step(1).name('scalez')
 
-	// function fish (){
-	// 	mainCentre.scale.x = mainCentre.scale.y = mainCentre.scale.z
+
+	// const circleGeometry = new THREE.CircleGeometry(5, 32);
+	// const material = new THREE.MeshBasicMaterial({
+	// 	color: 0xffff00,
+	// 	side: THREE.DoubleSide,
+	// });
+	// const waterCircle = new THREE.Mesh(circleGeometry, material);
+	// everything.add(waterCircle);
+	//
+	// waterCircle.position.set(0, 520, -1950)
+	// // waterCircle.rotation.x = Math.PI * 0.5
 	//
 	//
-	// }
+	// gui.add(waterCircle.position, 'x').min(0).max(1000).step(1).name('waterx');
+	// gui.add(waterCircle.position, 'y').min(500).max(520).step(1).name('watery');
+	// gui.add(waterCircle.position, 'z').min(-1900).max(-2100).step(1).name('waterz');
+	//
+	// gui.add(waterCircle.rotation, 'x').min(0).max(90).step(1).name('waterx1');
+	// gui.add(waterCircle.rotation, 'y').min(0).max(90).step(1).name('watery1');
+	// gui.add(waterCircle.rotation, 'z').min(0).max(90).step(1).name('waterz1');
 
-
-	// gui.add(mainCentre.scale, 'y').min(1).max(100).step(1).name('scaley');
-	// gui.add(mainCentre.scale, 'z').min(1).max(100).step(1).name('scalez');
 }
 
 // change density to 0.0031
@@ -711,7 +747,7 @@ function render() {
 	previousTime = elapsedTime
 
 	// BodySphere Attach
-	bodySphere.position.set(0, -20, 0);
+	bodySphere.position.set(0, 0, 0);
 
 	// Update materials
 	firefliesMaterial.uniforms.uTime.value = elapsedTime
@@ -741,6 +777,10 @@ function render() {
 		if (controls.getObject().position.z > 80) {
 			velocity.z = 0;
 			controls.getObject().position.z = 80;
+		}
+		if (controls.getObject().position.z < -2350) {
+			velocity.z = 0;
+			controls.getObject().position.z = -2350;
 		}
 		if (controls.getObject().position.x > 150) {
 			velocity.x = 0;
@@ -791,14 +831,14 @@ function render() {
 
 	if (camera.position.z < liftPoint && everything.position.y > cameraZLifter) {
 		everything.position.y -= 0.3
-		// everything.position.y -= 2
+		// everything.position.y -= 4
 	} else if (camera.position.z > liftPoint && everything.position.y < 0) {
 		everything.position.y += 0.3
-		// everything.position.y += 2
+		// everything.position.y += 4
 		disk.position.z = liftPoint
 	}
 
-	if (camera.position.z < liftPoint && camera.position.z > -1365) {
+	if (camera.position.z < liftPoint && camera.position.z > -1375) {
 		disk.position.z = camera.position.z
 	}
 
@@ -825,11 +865,11 @@ function render() {
 	if (camera.position.z < -800) {
 
 		let fogMapper = mapNumber(camera.position.z, -1800, -2200, 0.004, 0.0012)
-	//
-	fogChanger = fogMapper > 0.004 ? 0.004 : fogMapper < 0.0012 ? 0.0012 : fogMapper
+		//
+		fogChanger = fogMapper > 0.004 ? 0.004 : fogMapper < 0.0012 ? 0.0012 : fogMapper
 
-	//
-	scene.fog.density = fogChanger
+		//
+		scene.fog.density = fogChanger
 
 	}
 	//
@@ -921,7 +961,9 @@ let effectComposer
 let firefliesMaterial
 
 //Mirror
-let verticalMirror, groundMirror
+let verticalMirror, groundMirror, mirror1
+let mirrors = []
+let mirrorGroup = new THREE.Object3D();
 let skyChanger = 0
 
 let fogChanger = 0

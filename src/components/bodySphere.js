@@ -1,12 +1,12 @@
 import {
-	SphereBufferGeometry,
+	SphereGeometry,
 	MeshBasicMaterial,
 	Mesh
 } from '../../build/three.module.js';
 
 function createBodySphere() {
 
-	const geometry2 = new SphereBufferGeometry(25, 8, 8);
+	const geometry2 = new SphereGeometry(24, 32, 32);
 	const material2 = new MeshBasicMaterial({
 		color: 'white'
 	});
