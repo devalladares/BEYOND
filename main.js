@@ -35,8 +35,8 @@ function init() {
 	window.addEventListener('resize', onWindowResize, false);
 
 	// STATS
-	stats = new Stats();
-	container.appendChild(stats.dom);
+	//stats = new Stats();
+	//container.appendChild(stats.dom);
 
 	// FOG + BACKGROUND
 	scene.background = new THREE.Color('black')
@@ -729,7 +729,7 @@ function onTransitionEnd(event) {
 
 function animate() {
 	requestAnimationFrame(animate);
-	stats.update();
+	//stats.update();
 	render()
 }
 
